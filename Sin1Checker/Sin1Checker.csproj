@@ -108,6 +108,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="cGeoExporter.cs" />
+    <Compile Include="cLine.cs" />
+    <Compile Include="cPoint.cs" />
+    <Compile Include="cPopupBox.cs" />
+    <Compile Include="cProgramCaller.cs" />
     <Compile Include="eConstanList.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

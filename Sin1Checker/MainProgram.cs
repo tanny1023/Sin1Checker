@@ -5,12 +5,10 @@ using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.Drawing.Text;//提供畫GDI+圖形的高階功能 
-using System.Drawing.Drawing2D;//提供畫高階二維,向量圖形功能 
-using System.Drawing.Imaging;//提供畫GDI+圖形的高階功能 
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 
@@ -20,9 +18,14 @@ namespace Sin1Checker
     class MainProgram
     {
         #region Property
+        private string GmshPath = Path.Combine(@"C:\ProgramData\Autodesk\Revit\Addins\2018", "gmsh.exe");
+        //--存檔路徑
+        private string SaveFilePath;
         private DataTable PointDataTable = new DataTable();
         private DataTable LineDataTable = new DataTable();
         private DataTable LinePropertyTable = new DataTable();
+        List<cPoint> PointList = new List<cPoint>();
+        List<cLine> LineList = new List<cLine>();
         #endregion
 
         #region Constructor
@@ -39,17 +42,72 @@ namespace Sin1Checker
                 MessageBox.Show("檔案開啟錯誤");
             else
             {
-                PointDataTable = ImportExcel(PointSheetName, 2, openFileDialogFunction);
-                LineDataTable = ImportExcel(LineNumberSheetName, 2, openFileDialogFunction);
-                LinePropertyTable = ImportExcel(LinePropertySheetName, 2, openFileDialogFunction);
+                string filePath = openFileDialogFunction.FileName;
+                string fileName = Path.GetFileName(filePath);
+                SaveFilePath = filePath.Remove(filePath.Length - fileName.Length, fileName.Length);
+                PointDataTable = ImportExcel(PointSheetName, 2, filePath, fileName);
+                LineDataTable = ImportExcel(LineNumberSheetName, 2, filePath, fileName);
+                LinePropertyTable = ImportExcel(LinePropertySheetName, 2, filePath, fileName);
             }
-
-
+            //--建立點
+            GetPoint();
+            //--建立線
+            GetLine();
+            //--加入線的屬性
+            SetLineProperty();
+            //--建立GEO檔案
+            cGeoExporter geoFile = new cGeoExporter(SaveFilePath, "2Ddata",PointList, LineList);
+            //--呼叫GMSH.exe
+            cProgramCaller gmshCaller = new cProgramCaller();
+            gmshCaller.SetPorgram(GmshPath, SaveFilePath, "2Ddata", ".geo");
+            gmshCaller.CallProgram();
         }
         #endregion
 
         #region Method
+        //--建立點
+        public void GetPoint()
+        {
+            //提取點的屬性信息
+            for (int i = 0; i < PointDataTable.Rows.Count; i++)
+            {
+                int number = Convert.ToInt32(PointDataTable.Rows[i][0]);
+                double x = Convert.ToDouble(PointDataTable.Rows[i][1]);
+                double y = Convert.ToDouble(PointDataTable.Rows[i][2]);
+                double z = Convert.ToDouble(PointDataTable.Rows[i][3]);
+                PointList.Add(new cPoint(number, x, y, z));
+            }
+        }
+        //--建立線
+        public void GetLine()
+        {
+            //提取線的屬性信息
+            for (int i = 0; i < LineDataTable.Rows.Count; i++)
+            {
+                int number = Convert.ToInt32(LineDataTable.Rows[i][0]);
+                int startPt = Convert.ToInt32(LineDataTable.Rows[i][1]);
+                int endPt = Convert.ToInt32(LineDataTable.Rows[i][2]);
+                LineList.Add(new cLine(number, startPt, endPt));
+            }
+        }
+        //--尋找相同編號的Line加入屬性
+        public void FindSameLineNumber(int number, string lineProperty)
+        {
+            foreach (cLine line in LineList)
+                line.SetLineProperty(number, lineProperty);
+        }
+        //--加入線的屬性
+        public void SetLineProperty()
+        {
+            //提取線的屬性信息
+            for (int i = 0; i < LinePropertyTable.Rows.Count; i++)
+            {
+                int number = Convert.ToInt32(LinePropertyTable.Rows[i][0]);
+                string lineProperty = LinePropertyTable.Rows[i][2].ToString();
+                FindSameLineNumber(number, lineProperty);
+            }
 
+        }
         //--得到資料表
         public DataTable GetTable(DataTableName dataTableName)
         {
@@ -79,11 +137,10 @@ namespace Sin1Checker
             return openFileDialogFunction;
         }
         //--載入Excel檔案
-        public DataTable ImportExcel(string sheetName, int headLine, OpenFileDialog openFileDialogFunction)
+        public DataTable ImportExcel(string sheetName, int headLine, string filePath, string fileName)
         {
             DataTable dataTable = new DataTable();
-            string filePath = openFileDialogFunction.FileName;
-            string fileName = Path.GetFileName(filePath);
+
             FileStream fileStream = null;
             fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             IWorkbook workBook = null;
