@@ -14,7 +14,7 @@ namespace Sin1Checker
         private void button1_Click(object sender, EventArgs e)
         {
             MainProgram mainProgram = new MainProgram();
-            DataTable TableValue = mainProgram.ImportExcel();
+            DataTable TableValue = mainProgram.GetTable(DataTableName.LineTable);
             dataGridView1.DataSource = TableValue;
         }
     }
