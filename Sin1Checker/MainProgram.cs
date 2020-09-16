@@ -4,9 +4,16 @@ Class 功能說明: 多線程讀取Excel（1 主線程、4 副線程）
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Text;//提供畫GDI+圖形的高階功能 
+using System.Drawing.Drawing2D;//提供畫高階二維,向量圖形功能 
+using System.Drawing.Imaging;//提供畫GDI+圖形的高階功能 
 using System.IO;
 using System.Windows.Forms;
+
+
 //--引用EXCEL資料表格
 namespace Sin1Checker
 {
@@ -108,7 +115,7 @@ namespace Sin1Checker
             DataRow dataRow = null;
             CellType ct = CellType.Blank;
             //標題列之後的資料
-            for (int i = sheet.FirstRowNum + 1; i <= sheet.LastRowNum; i++)
+            for (int i = headLine + 1; i <= sheet.LastRowNum; i++)
             {
                 dataRow = dataTable.NewRow();
                 row = sheet.GetRow(i);
