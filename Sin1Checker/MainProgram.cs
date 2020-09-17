@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 
 
@@ -21,9 +20,11 @@ namespace Sin1Checker
         private string GmshPath = Path.Combine(@"C:\ProgramData\Autodesk\Revit\Addins\2018", "gmsh.exe");
         //--存檔路徑
         private string SaveFilePath;
+        //--資料表
         private DataTable PointDataTable = new DataTable();
         private DataTable LineDataTable = new DataTable();
         private DataTable LinePropertyTable = new DataTable();
+        //--點資訊
         List<cPoint> PointList = new List<cPoint>();
         List<cLine> LineList = new List<cLine>();
         #endregion
@@ -56,7 +57,7 @@ namespace Sin1Checker
             //--加入線的屬性
             SetLineProperty();
             //--建立GEO檔案
-            cGeoExporter geoFile = new cGeoExporter(SaveFilePath, "2Ddata",PointList, LineList);
+            cGeoExporter geoFile = new cGeoExporter(SaveFilePath, "2Ddata", PointList, LineList);
             //--呼叫GMSH.exe
             cProgramCaller gmshCaller = new cProgramCaller();
             gmshCaller.SetPorgram(GmshPath, SaveFilePath, "2Ddata", ".geo");
@@ -65,6 +66,15 @@ namespace Sin1Checker
         #endregion
 
         #region Method
+        //--依照終端點位編號建立點
+        public void GetEndPt(int i, cPoint startPoint)
+        {
+            int endNumber = Convert.ToInt32(PointDataTable.Rows[i][4]);
+            double endx = Convert.ToDouble(PointDataTable.Rows[i][5]);
+            double endy = Convert.ToDouble(PointDataTable.Rows[i][6]);
+            double endz = Convert.ToDouble(PointDataTable.Rows[i][7]);
+
+        }
         //--建立點
         public void GetPoint()
         {
@@ -75,7 +85,16 @@ namespace Sin1Checker
                 double x = Convert.ToDouble(PointDataTable.Rows[i][1]);
                 double y = Convert.ToDouble(PointDataTable.Rows[i][2]);
                 double z = Convert.ToDouble(PointDataTable.Rows[i][3]);
-                PointList.Add(new cPoint(number, x, y, z));
+                cPoint startPoint = new cPoint(number, x, y, z);
+                PointList.Add(startPoint);
+                if (PointDataTable.Rows[i][4].ToString().Length > 0)
+                {
+                    number = Convert.ToInt32(PointDataTable.Rows[i][4]);
+                    x = Convert.ToDouble(PointDataTable.Rows[i][5]);
+                    y = Convert.ToDouble(PointDataTable.Rows[i][6]);
+                    z = Convert.ToDouble(PointDataTable.Rows[i][7]);
+                    PointList.AddRange(startPoint.GetPointList(number, x, y, z));
+                }
             }
         }
         //--建立線
@@ -87,7 +106,13 @@ namespace Sin1Checker
                 int number = Convert.ToInt32(LineDataTable.Rows[i][0]);
                 int startPt = Convert.ToInt32(LineDataTable.Rows[i][1]);
                 int endPt = Convert.ToInt32(LineDataTable.Rows[i][2]);
-                LineList.Add(new cLine(number, startPt, endPt));
+                cLine startLine = new cLine(number, startPt, endPt);
+                LineList.Add(startLine);
+                if (LineDataTable.Rows[i][3].ToString().Length > 0)
+                {
+                    number = Convert.ToInt32(LineDataTable.Rows[i][3]);
+                    LineList.AddRange(startLine.GetLineList(number));
+                }
             }
         }
         //--尋找相同編號的Line加入屬性

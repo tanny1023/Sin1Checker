@@ -5,7 +5,7 @@
 namespace Sin1Checker
 {
     //--常數
-    static class eConstantList
+    static class List
     {
     }
     //--表格名稱

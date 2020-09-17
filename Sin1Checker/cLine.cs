@@ -1,4 +1,6 @@
-﻿namespace Sin1Checker
+﻿using System.Collections.Generic;
+
+namespace Sin1Checker
 {
     public class cLine
     {
@@ -30,6 +32,20 @@
         {
             string line = "Line(" + Number + ")={" + StartPtNumeber + "," + EndPtNumeber + "};";
             return line;
+        }
+        //--輸出起點與終點間的線集合
+        public List<cLine> GetLineList(int endNumber)
+        {
+            List<cLine> lineList = new List<cLine>();
+            int stepNumber = endNumber - Number;
+            for (int i = 1; i <= stepNumber; i++)
+            {
+                int number = Number + i;
+                int startPt = StartPtNumeber+i;
+                int endPt = startPt + 1;
+                lineList.Add(new cLine(number, startPt, endPt));
+            }
+            return lineList;
         }
         #endregion
     }
