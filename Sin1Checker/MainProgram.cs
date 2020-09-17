@@ -130,6 +130,14 @@ namespace Sin1Checker
                 int number = Convert.ToInt32(LinePropertyTable.Rows[i][0]);
                 string lineProperty = LinePropertyTable.Rows[i][2].ToString();
                 FindSameLineNumber(number, lineProperty);
+                if (LineDataTable.Rows[i][3].ToString().Length > 0)
+                {
+                    int endNumber = Convert.ToInt32(LineDataTable.Rows[i][3]);
+                    for (int j = number+1; j <= endNumber; j++)
+                    {
+                        FindSameLineNumber(j, lineProperty);
+                    }
+                }
             }
 
         }

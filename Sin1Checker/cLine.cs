@@ -30,7 +30,7 @@ namespace Sin1Checker
         //--顯示Line
         public string PrintLine()
         {
-            string line = "Line(" + Number + ")={" + StartPtNumeber + "," + EndPtNumeber + "};";
+            string line = "Line(" + Number + ")={" + StartPtNumeber + "," + EndPtNumeber + "};//剖面厚= " + Property;
             return line;
         }
         //--輸出起點與終點間的線集合
@@ -41,12 +41,13 @@ namespace Sin1Checker
             for (int i = 1; i <= stepNumber; i++)
             {
                 int number = Number + i;
-                int startPt = StartPtNumeber+i;
+                int startPt = StartPtNumeber + i;
                 int endPt = startPt + 1;
                 lineList.Add(new cLine(number, startPt, endPt));
             }
             return lineList;
         }
+        //--加入線集合的屬性
         #endregion
     }
 }
